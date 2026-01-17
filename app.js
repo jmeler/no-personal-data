@@ -235,7 +235,9 @@ fileInput.addEventListener("change", async (e) => {
   const file = e.target.files?.[0];
   // Base name y extensión para nombrar outputs
   const lower = file.name.toLowerCase();
-  inputExt = lower.endsWith(".csv") ? "csv" : "xlsx";
+  if (lower.endsWith(".csv")) inputExt = "csv";
+  else if (lower.endsWith(".ods")) inputExt = "ods";
+  else inputExt = "xlsx";
 
   // Base name sin extensión (manejo simple)
   inputBaseName = file.name.replace(/\.[^/.]+$/, "");
@@ -249,17 +251,16 @@ fileInput.addEventListener("change", async (e) => {
 
   try {
     if (ext.endsWith(".csv")) {
-      // Convertim CSV a workbook amb un sol sheet
       const text = new TextDecoder("utf-8").decode(new Uint8Array(buf));
       const ws = XLSX.utils.csv_to_sheet(text);
       workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, ws, "data");
-    } else if (ext.endsWith(".xlsx") || ext.endsWith(".xls")) {
+    } else if (ext.endsWith(".xlsx") || ext.endsWith(".xls") || ext.endsWith(".ods")) {
       workbook = XLSX.read(buf, { type: "array" });
     } else {
-      setStatus("Format no suportat. Puja CSV o XLSX.", true);
+      setStatus("Format no suportat. Puja CSV, XLSX o ODS.", true);
       return;
-    }
+    }    
 
     const names = workbook.SheetNames;
     if (names.length > 1) {
