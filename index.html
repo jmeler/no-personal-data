@@ -34,19 +34,38 @@
     </section>
 
     <section class="card hidden" id="previewCard">
-      <h2>3) Previsualització</h2>
+      <h2>3) Previsualización (3 filas)</h2>
       <div id="preview"></div>
     </section>
+    
+    <section class="card hidden" id="resultPreviewCard">
+      <h2>5) Previsualización de resultados (3 filas)</h2>
+    
+      <div class="two-col">
+        <div>
+          <h3>Privat</h3>
+          <div id="previewPrivate"></div>
+        </div>
+        <div>
+          <h3>Públic</h3>
+          <div id="previewPublic"></div>
+        </div>
+      </div>
+    </section>
+    
 
     <section class="card hidden" id="generateCard">
       <h2>4) Genera i descarrega</h2>
       <button id="generateBtn">Generar fitxers</button>
+    
       <div class="downloads hidden" id="downloads">
-        <a id="dlPrivate" class="btn" download="private.xlsx">Descarregar privat</a>
-        <a id="dlPublic" class="btn" download="public.xlsx">Descarregar públic</a>
+        <a id="dlPrivate" class="btn">Descarregar privat</a>
+        <a id="dlPublic" class="btn">Descarregar públic</a>
       </div>
+    
       <div id="status" class="status"></div>
     </section>
+    
   </main>
   <script src="./app.js"></script>
 </body>

@@ -22,6 +22,13 @@ const dlPrivate = document.getElementById("dlPrivate");
 const dlPublic = document.getElementById("dlPublic");
 const statusDiv = document.getElementById("status");
 
+const resultPreviewCard = document.getElementById("resultPreviewCard");
+const previewPrivateDiv = document.getElementById("previewPrivate");
+const previewPublicDiv = document.getElementById("previewPublic");
+
+let inputBaseName = "anonimitzat"; // se actualiza al cargar archivo
+let inputExt = "xlsx";             // por defecto
+
 let workbook = null;
 let activeSheetName = null;
 let tableRows = []; // array of objects [{col: val, ...}, ...]
@@ -53,6 +60,9 @@ function resetUI() {
   sheetRow.classList.add("hidden");
   downloads.classList.add("hidden");
   setStatus("");
+  resultPreviewCard.classList.add("hidden");
+  previewPrivateDiv.innerHTML = "";
+  previewPublicDiv.innerHTML = "";
 }
 
 function renderPreview(rows, max = 20) {
@@ -75,6 +85,28 @@ function renderPreview(rows, max = 20) {
     <p class="muted">Mostrant ${Math.min(max, rows.length)} de ${rows.length} files.</p>
   `;
 }
+
+function renderPreviewInto(targetDiv, rows, max = 3) {
+    if (!rows.length) {
+      targetDiv.innerHTML = "<p class='muted'>Sense files per mostrar.</p>";
+      return;
+    }
+    const cols = Object.keys(rows[0]);
+    const head = cols.map(c => `<th>${escapeHtml(c)}</th>`).join("");
+    const body = rows.slice(0, max).map(r => {
+      const tds = cols.map(c => `<td>${escapeHtml(String(r[c] ?? ""))}</td>`).join("");
+      return `<tr>${tds}</tr>`;
+    }).join("");
+  
+    targetDiv.innerHTML = `
+      <table>
+        <thead><tr>${head}</tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+      <p class="muted">Mostrant ${Math.min(max, rows.length)} de ${rows.length} files.</p>
+    `;
+  }
+  
 
 function escapeHtml(s) {
   return s.replace(/[&<>"']/g, (m) => ({
@@ -99,7 +131,7 @@ function loadSheet(sheetName) {
 
   const cols = Object.keys(tableRows[0]);
   renderColumns(cols);
-  renderPreview(tableRows);
+  renderPreview(tableRows,3);
 
   columnsCard.classList.remove("hidden");
   previewCard.classList.remove("hidden");
@@ -176,6 +208,12 @@ function generate() {
     publicRows.push(pub);
   }
 
+  // Previsualización resultados (3 filas)
+  renderPreviewInto(previewPrivateDiv, privateRows, 3);
+  renderPreviewInto(previewPublicDiv, publicRows, 3);
+  resultPreviewCard.classList.remove("hidden");
+
+
   // Crea dos XLSX separats
   const wbPriv = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wbPriv, toWorksheetFromObjects(privateRows), "private");
@@ -189,6 +227,8 @@ function generate() {
 
   dlPrivate.href = urlPriv;
   dlPublic.href = urlPub;
+  dlPrivate.download = `${inputBaseName}_private.xlsx`;
+  dlPublic.download  = `${inputBaseName}_public.xlsx`;
 
   downloads.classList.remove("hidden");
   setStatus("Fitxers generats. Pots descarregar-los ara.");
@@ -198,6 +238,13 @@ fileInput.addEventListener("change", async (e) => {
   resetUI();
 
   const file = e.target.files?.[0];
+  // Base name y extensión para nombrar outputs
+  const lower = file.name.toLowerCase();
+  inputExt = lower.endsWith(".csv") ? "csv" : "xlsx";
+
+  // Base name sin extensión (manejo simple)
+  inputBaseName = file.name.replace(/\.[^/.]+$/, "");
+
   if (!file) return;
 
   fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
