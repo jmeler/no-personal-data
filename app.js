@@ -106,6 +106,10 @@ function escapeHtml(s) {
   }[m]));
 }
 
+function normalizeCsvText(text) {
+  return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+}
+
 function countDelimiter(line, delimiter) {
   let count = 0;
   let inQuotes = false;
@@ -125,7 +129,7 @@ function countDelimiter(line, delimiter) {
 }
 
 function detectCsvDelimiter(text) {
-  const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+  const lines = normalizeCsvText(text).split("\n").filter(l => l.trim().length);
   const sample = lines[0] || "";
   const candidates = [",", ";", "\t", "|"];
   let best = { delimiter: ",", count: -1 };
@@ -134,6 +138,22 @@ function detectCsvDelimiter(text) {
     if (count > best.count) best = { delimiter: d, count };
   }
   return best.delimiter;
+}
+
+function csvToWorkbookWithFallback(text) {
+  const normalized = normalizeCsvText(text);
+  const detected = detectCsvDelimiter(normalized);
+  const candidates = [detected, ",", ";", "\t", "|"].filter((d, i, a) => a.indexOf(d) === i);
+  for (const d of candidates) {
+    const wb = XLSX.read(normalized, { type: "string", FS: d });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    if (rows.length && rows[0].length > 1) return { wb, delimiter: d };
+  }
+  const ws = XLSX.utils.csv_to_sheet(normalized, { FS: detected });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "data");
+  return { wb, delimiter: detected };
 }
 
 function loadSheet(sheetName) {
@@ -282,10 +302,8 @@ fileInput.addEventListener("change", async (e) => {
   try {
     if (ext.endsWith(".csv")) {
       const text = new TextDecoder("utf-8").decode(new Uint8Array(buf));
-      const delimiter = detectCsvDelimiter(text);
-      const ws = XLSX.utils.csv_to_sheet(text, { FS: delimiter });
-      workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, ws, "data");
+      const { wb } = csvToWorkbookWithFallback(text);
+      workbook = wb;
     } else if (ext.endsWith(".xlsx") || ext.endsWith(".xls") || ext.endsWith(".ods")) {
       workbook = XLSX.read(buf, { type: "array" });
     } else {
