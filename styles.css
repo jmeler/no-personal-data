@@ -78,11 +78,15 @@
     display: inline-block;
   }
   
-  .downloads {
-    display: flex;
-    gap: 12px;
-    margin-top: 12px;
-  }
+.downloads {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.download-slot {
+  margin-top: 12px;
+}
   
   .status { margin-top: 12px; }
   .hidden { display: none; }

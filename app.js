@@ -18,7 +18,9 @@ const previewDiv = document.getElementById("preview");
 const generateCard = document.getElementById("generateCard");
 const generateBtn = document.getElementById("generateBtn");
 
-const downloads = document.getElementById("downloads");
+const downloadSlots = document.querySelectorAll(".download-slot");
+const downloadsPrivate = document.getElementById("downloadsPrivate");
+const downloadsPublic = document.getElementById("downloadsPublic");
 const dlPrivate = document.getElementById("dlPrivate");
 const dlPublic = document.getElementById("dlPublic");
 const statusDiv = document.getElementById("status");
@@ -55,7 +57,7 @@ function resetUI() {
   previewCard.classList.add("hidden");
   generateCard.classList.add("hidden");
   sheetRow.classList.add("hidden");
-  downloads.classList.add("hidden");
+  downloadSlots.forEach((slot) => slot.classList.add("hidden"));
   setStatus("");
   resultPreviewCard.classList.add("hidden");
   previewPrivateDiv.innerHTML = "";
@@ -280,7 +282,8 @@ function generate() {
   dlPrivate.download = `${inputBaseName}_private.xlsx`;
   dlPublic.download  = `${inputBaseName}_public.xlsx`;
 
-  downloads.classList.remove("hidden");
+  downloadsPrivate.classList.remove("hidden");
+  downloadsPublic.classList.remove("hidden");
   setStatus("Fitxers generats. Pots descarregar-los ara.");
   generateCard.classList.add("hidden");
 }
