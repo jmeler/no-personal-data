@@ -2,6 +2,7 @@
 
 const fileInput = document.getElementById("fileInput");
 const fileInfo = document.getElementById("fileInfo");
+const msgInfo = document.getElementById("msg_info");
 
 const sheetRow = document.getElementById("sheetRow");
 const sheetSelect = document.getElementById("sheetSelect");
@@ -33,6 +34,9 @@ let workbook = null;
 let activeSheetName = null;
 let tableRows = []; // array of objects [{col: val, ...}, ...]
 
+const DEFAULT_INFO_TEXT = "Formats admesos: .csv, .xlsx, .xls, .ods";
+const CSV_INFO_TEXT = "CSV: separador ',' o ';' i decimals amb punt (.).";
+
 
 function setStatus(msg, isError = false) {
   statusDiv.textContent = msg;
@@ -43,6 +47,7 @@ function resetUI() {
   workbook = null;
   activeSheetName = null;
   tableRows = [];
+  msgInfo.textContent = DEFAULT_INFO_TEXT;
   sheetSelect.innerHTML = "";
   columnsList.innerHTML = "";
   previewDiv.innerHTML = "";
@@ -131,7 +136,7 @@ function countDelimiter(line, delimiter) {
 function detectCsvDelimiter(text) {
   const lines = normalizeCsvText(text).split("\n").filter(l => l.trim().length);
   const sample = lines[0] || "";
-  const candidates = [",", ";", "\t", "|"];
+  const candidates = [",", ";"];
   let best = { delimiter: ",", count: -1 };
   for (const d of candidates) {
     const count = countDelimiter(sample, d);
@@ -143,7 +148,7 @@ function detectCsvDelimiter(text) {
 function csvToWorkbookWithFallback(text) {
   const normalized = normalizeCsvText(text);
   const detected = detectCsvDelimiter(normalized);
-  const candidates = [detected, ",", ";", "\t", "|"].filter((d, i, a) => a.indexOf(d) === i);
+  const candidates = [detected, ",", ";"].filter((d, i, a) => a.indexOf(d) === i);
   for (const d of candidates) {
     const wb = XLSX.read(normalized, { type: "string", FS: d });
     const ws = wb.Sheets[wb.SheetNames[0]];
@@ -277,6 +282,7 @@ function generate() {
 
   downloads.classList.remove("hidden");
   setStatus("Fitxers generats. Pots descarregar-los ara.");
+  generateCard.classList.add("hidden");
 }
 
 fileInput.addEventListener("change", async (e) => {
@@ -295,6 +301,7 @@ fileInput.addEventListener("change", async (e) => {
   inputBaseName = file.name.replace(/\.[^/.]+$/, "");
 
   fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+  msgInfo.textContent = inputExt === "csv" ? CSV_INFO_TEXT : DEFAULT_INFO_TEXT;
 
   const ext = file.name.toLowerCase();
   const buf = await file.arrayBuffer();
