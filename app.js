@@ -106,6 +106,36 @@ function escapeHtml(s) {
   }[m]));
 }
 
+function countDelimiter(line, delimiter) {
+  let count = 0;
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === "\"") {
+      if (inQuotes && line[i + 1] === "\"") {
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (!inQuotes && ch === delimiter) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+function detectCsvDelimiter(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+  const sample = lines[0] || "";
+  const candidates = [",", ";", "\t", "|"];
+  let best = { delimiter: ",", count: -1 };
+  for (const d of candidates) {
+    const count = countDelimiter(sample, d);
+    if (count > best.count) best = { delimiter: d, count };
+  }
+  return best.delimiter;
+}
+
 function loadSheet(sheetName) {
   activeSheetName = sheetName;
   const ws = workbook.Sheets[sheetName];
@@ -233,6 +263,8 @@ fileInput.addEventListener("change", async (e) => {
   resetUI();
 
   const file = e.target.files?.[0];
+  if (!file) return;
+
   // Base name y extensión para nombrar outputs
   const lower = file.name.toLowerCase();
   if (lower.endsWith(".csv")) inputExt = "csv";
@@ -242,8 +274,6 @@ fileInput.addEventListener("change", async (e) => {
   // Base name sin extensión (manejo simple)
   inputBaseName = file.name.replace(/\.[^/.]+$/, "");
 
-  if (!file) return;
-
   fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
 
   const ext = file.name.toLowerCase();
@@ -252,7 +282,8 @@ fileInput.addEventListener("change", async (e) => {
   try {
     if (ext.endsWith(".csv")) {
       const text = new TextDecoder("utf-8").decode(new Uint8Array(buf));
-      const ws = XLSX.utils.csv_to_sheet(text);
+      const delimiter = detectCsvDelimiter(text);
+      const ws = XLSX.utils.csv_to_sheet(text, { FS: delimiter });
       workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, ws, "data");
     } else if (ext.endsWith(".xlsx") || ext.endsWith(".xls") || ext.endsWith(".ods")) {
