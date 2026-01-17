@@ -33,14 +33,6 @@ let workbook = null;
 let activeSheetName = null;
 let tableRows = []; // array of objects [{col: val, ...}, ...]
 
-function uuidv4() {
-  // UUID v4 simple (browser-safe)
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (crypto.getRandomValues(new Uint8Array(1))[0] & 15);
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
 
 function setStatus(msg, isError = false) {
   statusDiv.textContent = msg;
@@ -193,8 +185,10 @@ function generate() {
   const privateRows = [];
   const publicRows = [];
 
+  let counter = 1;
+
   for (const row of tableRows) {
-    const id = uuidv4();
+    const id = counter++;
 
     const priv = { [idCol]: id };
     const pub = { [idCol]: id };
@@ -207,6 +201,7 @@ function generate() {
     privateRows.push(priv);
     publicRows.push(pub);
   }
+
 
   // Previsualización resultados (3 filas)
   renderPreviewInto(previewPrivateDiv, privateRows, 3);
