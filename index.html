@@ -9,8 +9,8 @@
 </head>
 <body>
   <main class="container">
-    <h1>Anonimitzador de dades (GitHub Pages)</h1>
-    <p class="muted">Processament local al navegador. No s’envien dades a cap servidor.</p>
+    <h1>Anonimitzador de dades</h1>
+    <p class="muted">Processament local al navegador web. No s’envien dades a cap servidor.</p>
 
     <section class="card">
       <h2>1) Carrega fitxer</h2>
@@ -23,8 +23,8 @@
       </div>
 
       <div class="row">
-        <label for="idColumn">Nom de l'identificador (ID):</label>
-        <input id="idColumn" type="text" value="id" />
+        <label for="idColumn">Nom del camp que farà de clau:</label>
+        <input id="idColumn" type="text" value="ID" />
       </div>
     </section>
 
@@ -34,20 +34,22 @@
     </section>
 
     <section class="card hidden" id="previewCard">
-      <h2>3) Previsualización (3 filas)</h2>
+      <h2>3) Previsualizació del document original</h2>
       <div id="preview"></div>
     </section>
     
     <section class="card hidden" id="resultPreviewCard">
-      <h2>5) Previsualización de resultados (3 filas)</h2>
+      <h2>5) Previsualizació del resultat</h2>
     
       <div class="two-col">
         <div>
-          <h3>Privat</h3>
+          <h3>Full privat</h3>
+          <p class="muted">No compartir.</p>
           <div id="previewPrivate"></div>
         </div>
         <div>
-          <h3>Públic</h3>
+          <h3>Full públic</h3>
+          <p class="muted">Podeu fer-lo servir públicament.</p>
           <div id="previewPublic"></div>
         </div>
       </div>
