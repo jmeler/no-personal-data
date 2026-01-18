@@ -166,6 +166,20 @@ function csvToWorkbookWithFallback(text) {
   return { wb, delimiter: detected };
 }
 
+function computeLineTolerance(sorted) {
+  const unique = [];
+  for (const item of sorted) {
+    const last = unique[unique.length - 1];
+    if (!last || Math.abs(item.y - last) > 0.2) unique.push(item.y);
+  }
+  if (unique.length < 2) return 3;
+  const diffs = [];
+  for (let i = 1; i < unique.length; i++) diffs.push(Math.abs(unique[i - 1] - unique[i]));
+  diffs.sort((a, b) => a - b);
+  const median = diffs[Math.floor(diffs.length / 2)] || 3;
+  return Math.max(2, Math.min(6, median * 0.6));
+}
+
 function groupPdfTextLines(items) {
   const cleaned = items
     .filter((item) => item.str && item.str.trim().length)
@@ -176,8 +190,8 @@ function groupPdfTextLines(items) {
     }))
     .sort((a, b) => (b.y - a.y) || (a.x - b.x));
 
+  const tolerance = computeLineTolerance(cleaned);
   const lines = [];
-  const tolerance = 2;
 
   for (const item of cleaned) {
     const last = lines[lines.length - 1];
@@ -194,39 +208,85 @@ function groupPdfTextLines(items) {
   }));
 }
 
-function extractTableFromPdfLines(lines) {
-  if (!lines.length) return null;
-  let headerIndex = -1;
-  let headerItems = [];
+function splitBySpacing(text) {
+  return text
+    .split(/\s{2,}|\t+/)
+    .map((part) => part.trim())
+    .filter((part) => part.length);
+}
+
+function normalizeLineItems(line) {
+  if (line.items.length > 1) {
+    return { cells: line.items.map((item) => ({ text: item.text, x: item.x })), fromSplit: false };
+  }
+  if (!line.items.length) return { cells: [], fromSplit: false };
+  const parts = splitBySpacing(line.items[0].text);
+  return { cells: parts.map((text, index) => ({ text, x: index })), fromSplit: true };
+}
+
+function findHeaderLine(lines) {
+  const isHeaderCandidate = (cells) =>
+    cells.length >= 2 && cells.some((c) => /[A-Za-zÀ-ÿ]/.test(c.text));
 
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].items.length > headerItems.length) {
-      headerItems = lines[i].items;
-      headerIndex = i;
-    }
+    const normalized = normalizeLineItems(lines[i]);
+    if (isHeaderCandidate(normalized.cells)) return { index: i, ...normalized };
   }
 
-  if (headerItems.length < 2) return null;
+  let bestIndex = -1;
+  let bestCells = [];
+  let bestFromSplit = false;
+  for (let i = 0; i < lines.length; i++) {
+    const normalized = normalizeLineItems(lines[i]);
+    if (normalized.cells.length > bestCells.length) {
+      bestCells = normalized.cells;
+      bestFromSplit = normalized.fromSplit;
+      bestIndex = i;
+    }
+  }
+  return bestCells.length >= 2 ? { index: bestIndex, cells: bestCells, fromSplit: bestFromSplit } : null;
+}
 
-  const headers = headerItems.map((item) => item.text);
-  const headerX = headerItems.map((item) => item.x);
+function extractTableFromPdfLines(lines) {
+  if (!lines.length) return null;
+  const headerInfo = findHeaderLine(lines);
+  if (!headerInfo) return null;
+
+  const headers = headerInfo.cells.map((item) => item.text);
+  const useIndexColumns = headerInfo.fromSplit;
+  const headerX = headerInfo.cells.map((item) => item.x);
   const data = [];
 
-  for (let i = headerIndex + 1; i < lines.length; i++) {
+  for (let i = headerInfo.index + 1; i < lines.length; i++) {
     const line = lines[i];
     const row = Array.from({ length: headers.length }, () => "");
-    for (const item of line.items) {
-      let bestIndex = 0;
-      let bestDist = Infinity;
-      for (let c = 0; c < headerX.length; c++) {
-        const dist = Math.abs(item.x - headerX[c]);
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestIndex = c;
-        }
+    const normalized = normalizeLineItems(line);
+    const cells = normalized.cells;
+    if (!cells.length) continue;
+
+    if (useIndexColumns || normalized.fromSplit) {
+      for (let c = 0; c < headers.length; c++) {
+        row[c] = cells[c]?.text || "";
       }
-      row[bestIndex] = row[bestIndex] ? `${row[bestIndex]} ${item.text}` : item.text;
+    } else if (cells.length > 1) {
+      for (const cell of cells) {
+        let bestIndex = 0;
+        let bestDist = Infinity;
+        for (let c = 0; c < headerX.length; c++) {
+          const dist = Math.abs(cell.x - headerX[c]);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestIndex = c;
+          }
+        }
+        row[bestIndex] = row[bestIndex] ? `${row[bestIndex]} ${cell.text}` : cell.text;
+      }
+    } else {
+      for (let c = 0; c < headers.length; c++) {
+        row[c] = cells[c]?.text || "";
+      }
     }
+
     if (row.some((cell) => cell.trim().length)) data.push(row);
   }
 
