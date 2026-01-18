@@ -35,53 +35,8 @@ let workbook = null;
 let activeSheetName = null;
 let tableRows = []; // array of objects [{col: val, ...}, ...]
 
-const DEFAULT_INFO_HTML = `
-  <span class="format-icon" title=".csv" aria-label="CSV">
-    <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-      <path d="M6 2h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M14 2v4h4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M8 16c0 1.1.9 2 2 2h1m-3-4c0-1.1.9-2 2-2h1m3 6v-6m2 6h2m-2-6h2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <span class="format-icon" title=".xlsx" aria-label="XLSX">
-    <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-      <path d="M6 2h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M14 2v4h4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M8 16l3-4m0 4l-3-4m5 0h3m-3 4h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <span class="format-icon" title=".xls" aria-label="XLS">
-    <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-      <path d="M6 2h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M14 2v4h4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M8 16l3-4m0 4l-3-4m5-4v8m3 0v-8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <span class="format-icon" title=".ods" aria-label="ODS">
-    <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-      <path d="M6 2h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M14 2v4h4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M8 15c0 1.7 1.3 3 3 3s3-1.3 3-3-1.3-3-3-3m0-2v2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <span class="format-icon" title=".pdf" aria-label="PDF">
-    <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-      <path d="M6 2h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M14 2v4h4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M8 17v-6h2a2 2 0 0 1 0 4H8m6 2v-6h2m-2 3h2m-7 3h2m0-6v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-  </span>
-`;
-const CSV_INFO_HTML = `
-  <span class="format-icon" title=".csv" aria-label="CSV">
-    <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-      <path d="M6 2h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M14 2v4h4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M8 16c0 1.1.9 2 2 2h1m-3-4c0-1.1.9-2 2-2h1m3 6v-6m2 6h2m-2-6h2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <span class="muted">CSV: separador ',' o ';' i decimals amb punt (.).</span>
-`;
+const DEFAULT_INFO_TEXT = "Formats admesos: .csv, .xlsx, .xls, .ods, .pdf";
+const CSV_INFO_TEXT = "CSV: separador ',' o ';' i decimals amb punt (.).";
 
 if (typeof pdfjsLib !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -97,7 +52,7 @@ function resetUI() {
   workbook = null;
   activeSheetName = null;
   tableRows = [];
-  msgInfo.innerHTML = DEFAULT_INFO_HTML;
+  msgInfo.textContent = DEFAULT_INFO_TEXT;
   sheetSelect.innerHTML = "";
   columnsList.innerHTML = "";
   previewDiv.innerHTML = "";
@@ -513,7 +468,7 @@ fileInput.addEventListener("change", async (e) => {
   inputBaseName = file.name.replace(/\.[^/.]+$/, "");
 
   fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
-  msgInfo.innerHTML = inputExt === "csv" ? CSV_INFO_HTML : DEFAULT_INFO_HTML;
+  msgInfo.textContent = inputExt === "csv" ? CSV_INFO_TEXT : DEFAULT_INFO_TEXT;
 
   const ext = file.name.toLowerCase();
   const buf = await file.arrayBuffer();
