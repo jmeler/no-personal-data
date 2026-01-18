@@ -7,7 +7,6 @@ const msgInfo = document.getElementById("msg_info");
 const sheetRow = document.getElementById("sheetRow");
 const sheetSelect = document.getElementById("sheetSelect");
 
-const idColumnInput = document.getElementById("idColumn");
 
 const columnsCard = document.getElementById("columnsCard");
 const columnsList = document.getElementById("columnsList");
@@ -230,7 +229,7 @@ function workbookToBlobUrl(wb) {
 
 function generate() {
   const selected = getSelectedColumns();
-  const idCol = (idColumnInput.value || "id").trim() || "id";
+  const idCol = "ID";
 
   if (!tableRows.length) {
     setStatus("No hi ha dades carregades.", true);
