@@ -189,12 +189,22 @@ function loadSheet(sheetName) {
 }
 
 function renderColumns(cols) {
+  const defaultSensitive = new Set([
+    "DNI",
+    "NIF",
+    "Nom",
+    "Cognom",
+    "Correu",
+    "Correu electrònic",
+    "Adreça"
+  ].map((c) => c.toLowerCase()));
   columnsList.innerHTML = "";
   cols.forEach((c) => {
     const id = `col_${c}`;
+    const isDefault = defaultSensitive.has(String(c).trim().toLowerCase());
     const wrapper = document.createElement("label");
     wrapper.innerHTML = `
-      <input type="checkbox" value="${escapeHtml(c)}" />
+      <input type="checkbox" value="${escapeHtml(c)}" ${isDefault ? "checked" : ""} />
       <span>${escapeHtml(c)}</span>
     `;
     columnsList.appendChild(wrapper);
