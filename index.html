@@ -6,6 +6,7 @@
   <title>Anonimitzador de dades</title>
   <link rel="stylesheet" href="./styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
   <main class="container">
@@ -14,8 +15,8 @@
 
     <section class="card">
       <h2>1) Carrega full de càlcul amb totes les dades</h2>
-      <div id="msg_info" class="muted">Formats admesos: .csv, .xlsx, .xls, .ods</div>
-      <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.ods" />
+      <div id="msg_info" class="muted">Formats admesos: .csv, .xlsx, .xls, .ods, .pdf</div>
+      <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.ods,.pdf" />
       <div id="fileInfo" class="muted"></div>
 
       <div id="sheetRow" class="row hidden">
@@ -43,7 +44,7 @@
           <p class="muted">No compartir.</p>
           <div id="previewPrivate"></div>
           <div class="download-slot hidden" id="downloadsPrivate">
-            <a id="dlPrivate" class="btn">Descarregar privat</a>
+            <a id="dlPrivate" class="btn">Descarrega</a>
           </div>
         </div>
         <div>
@@ -51,7 +52,7 @@
           <p class="muted">Podeu fer-lo servir públicament.</p>
           <div id="previewPublic"></div>
           <div class="download-slot hidden" id="downloadsPublic">
-            <a id="dlPublic" class="btn">Descarregar públic</a>
+            <a id="dlPublic" class="btn">Descarrega</a>
           </div>
         </div>
       </div>

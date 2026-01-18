@@ -4,7 +4,7 @@ Aquesta aplicació web permet **pseudonimitzar** o **anonimitzar** un full de c�
 
 ## Què fa
 
-1. **Carrega un full de càlcul** `.csv`,`.xlsx` o `.ods` des del navegador.
+1. **Carrega un full de càlcul** `.csv`,`.xlsx`, `.ods` o `.pdf` des del navegador.
 2. Mostra una **previsualització de 3 files** del full original.
 3. Permet **seleccionar quines columnes vols “anonimitzar”** (p. ex. nom, email, telèfon, DNI…).
 4. Genera un **identificador autonumèric** per a cada registre (`1, 2, 3, ...`).
@@ -32,7 +32,7 @@ Aquesta aplicació web permet **pseudonimitzar** o **anonimitzar** un full de c�
 
 ## Formats suportats
 
-* Entrada: `.csv`, `.xlsx`, `.ods`
+* Entrada: `.csv`, `.xlsx`, `.ods`, `.pdf` (detecta la primera taula del document)
 * Sortida: `.xlsx` (dos fitxers)
 
 

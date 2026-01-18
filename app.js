@@ -1,4 +1,4 @@
-/* global XLSX */
+/* global XLSX, pdfjsLib */
 
 const fileInput = document.getElementById("fileInput");
 const fileInfo = document.getElementById("fileInfo");
@@ -35,8 +35,12 @@ let workbook = null;
 let activeSheetName = null;
 let tableRows = []; // array of objects [{col: val, ...}, ...]
 
-const DEFAULT_INFO_TEXT = "Formats admesos: .csv, .xlsx, .xls, .ods";
+const DEFAULT_INFO_TEXT = "Formats admesos: .csv, .xlsx, .xls, .ods, .pdf";
 const CSV_INFO_TEXT = "CSV: separador ',' o ';' i decimals amb punt (.).";
+
+if (typeof pdfjsLib !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
 
 
 function setStatus(msg, isError = false) {
@@ -160,6 +164,96 @@ function csvToWorkbookWithFallback(text) {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "data");
   return { wb, delimiter: detected };
+}
+
+function groupPdfTextLines(items) {
+  const cleaned = items
+    .filter((item) => item.str && item.str.trim().length)
+    .map((item) => ({
+      text: item.str.trim(),
+      x: item.transform[4],
+      y: item.transform[5]
+    }))
+    .sort((a, b) => (b.y - a.y) || (a.x - b.x));
+
+  const lines = [];
+  const tolerance = 2;
+
+  for (const item of cleaned) {
+    const last = lines[lines.length - 1];
+    if (!last || Math.abs(item.y - last.y) > tolerance) {
+      lines.push({ y: item.y, items: [item] });
+    } else {
+      last.items.push(item);
+    }
+  }
+
+  return lines.map((line) => ({
+    y: line.y,
+    items: line.items.sort((a, b) => a.x - b.x)
+  }));
+}
+
+function extractTableFromPdfLines(lines) {
+  if (!lines.length) return null;
+  let headerIndex = -1;
+  let headerItems = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].items.length > headerItems.length) {
+      headerItems = lines[i].items;
+      headerIndex = i;
+    }
+  }
+
+  if (headerItems.length < 2) return null;
+
+  const headers = headerItems.map((item) => item.text);
+  const headerX = headerItems.map((item) => item.x);
+  const data = [];
+
+  for (let i = headerIndex + 1; i < lines.length; i++) {
+    const line = lines[i];
+    const row = Array.from({ length: headers.length }, () => "");
+    for (const item of line.items) {
+      let bestIndex = 0;
+      let bestDist = Infinity;
+      for (let c = 0; c < headerX.length; c++) {
+        const dist = Math.abs(item.x - headerX[c]);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIndex = c;
+        }
+      }
+      row[bestIndex] = row[bestIndex] ? `${row[bestIndex]} ${item.text}` : item.text;
+    }
+    if (row.some((cell) => cell.trim().length)) data.push(row);
+  }
+
+  return { headers, data };
+}
+
+async function pdfToWorkbook(buf) {
+  if (typeof pdfjsLib === "undefined") {
+    throw new Error("No s'ha pogut carregar el lector de PDF.");
+  }
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const content = await page.getTextContent();
+    const lines = groupPdfTextLines(content.items);
+    const table = extractTableFromPdfLines(lines);
+    if (table) {
+      const aoa = [table.headers, ...table.data];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "data");
+      return wb;
+    }
+  }
+
+  throw new Error("No s'ha detectat cap taula al PDF.");
 }
 
 function loadSheet(sheetName) {
@@ -306,6 +400,7 @@ fileInput.addEventListener("change", async (e) => {
   // Base name y extensión para nombrar outputs
   const lower = file.name.toLowerCase();
   if (lower.endsWith(".csv")) inputExt = "csv";
+  else if (lower.endsWith(".pdf")) inputExt = "pdf";
   else if (lower.endsWith(".ods")) inputExt = "ods";
   else inputExt = "xlsx";
 
@@ -323,6 +418,8 @@ fileInput.addEventListener("change", async (e) => {
       const text = new TextDecoder("utf-8").decode(new Uint8Array(buf));
       const { wb } = csvToWorkbookWithFallback(text);
       workbook = wb;
+    } else if (ext.endsWith(".pdf")) {
+      workbook = await pdfToWorkbook(buf);
     } else if (ext.endsWith(".xlsx") || ext.endsWith(".xls") || ext.endsWith(".ods")) {
       workbook = XLSX.read(buf, { type: "array" });
     } else {
