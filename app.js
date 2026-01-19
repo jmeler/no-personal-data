@@ -4,6 +4,7 @@ const fileInput = document.getElementById("fileInput");
 const fileInfo = document.getElementById("fileInfo");
 const msgInfo = document.getElementById("msg_info");
 const dropZone = document.getElementById("dropZone");
+const langSelect = document.getElementById("langSelect");
 
 const sheetRow = document.getElementById("sheetRow");
 const sheetSelect = document.getElementById("sheetSelect");
@@ -36,7 +37,127 @@ let workbook = null;
 let activeSheetName = null;
 let tableRows = []; // array of objects [{col: val, ...}, ...]
 
-const CSV_INFO_TEXT = "CSV: separador ',' o ';' i decimals amb punt (.).";
+let lastPrivateRows = null;
+let lastPublicRows = null;
+
+const translations = {
+  ca: {
+    title: "Pseudoanonimitzador de dades personals",
+    subtitle: "Processament local al navegador web. No s’envien dades a cap servidor.",
+    validation: "Validat per l'Àrea de Tecnologies educatives i Digitalització responsable del Departament d'Educació i Formació professional.",
+    languageLabel: "Idioma",
+    step1: "1) Carrega full de càlcul amb totes les dades",
+    uploadTitle: "Arrossega el teu arxiu aquí",
+    uploadHint: "o fes clic per seleccionar",
+    uploadFormats: "Formats: CSV, XLSX, XLS, ODS, PDF",
+    csvHint: "CSV: separador ',' o ';' i decimals amb punt (.).",
+    sheetLabel: "Full (sheet):",
+    step2: "2) Previsualizació del document original",
+    step3: "3) Selecciona camps a pseudoanonimitzar",
+    step4: "4) Genera i descarrega",
+    step5: "4) Previsualizació del resultat i descàrrega",
+    privateTitle: "Full privat",
+    privateHint: "Conté dades personals. No compartir amb repositoris en línia o IA.",
+    publicTitle: "Full públic",
+    publicHint: "Podeu fer-lo servir públicament.",
+    download: "Descarrega",
+    generate: "Generar fitxers",
+    previewEmpty: "Sense files per mostrar.",
+    previewCount: "Mostrant {count} de {total} files.",
+    statusSheetEmpty: "Aquest full no té dades.",
+    statusNoData: "No hi ha dades carregades.",
+    statusSelectColumn: "Selecciona com a mínim una columna a pseudoanonimitzar.",
+    statusMissingColumns: "Columnes no trobades: {cols}",
+    statusGenerated: "Fitxers generats. Pots descarregar-los ara.",
+    statusUnsupported: "Format no suportat. Puja CSV, XLSX, XLS, ODS o PDF.",
+    statusReadError: "Error llegint fitxer: {err}"
+  },
+  es: {
+    title: "Pseudoanonimizador de datos personales",
+    subtitle: "Procesamiento local en el navegador. No se envían datos a ningún servidor.",
+    validation: "Validado por el Área de Tecnologías educativas y Digitalización responsable del Departamento de Educación y Formación profesional.",
+    languageLabel: "Idioma",
+    step1: "1) Carga la hoja con todos los datos",
+    uploadTitle: "Arrastra tu archivo aquí",
+    uploadHint: "o haz clic para seleccionar",
+    uploadFormats: "Formatos: CSV, XLSX, XLS, ODS, PDF",
+    csvHint: "CSV: separador ',' o ';' y decimales con punto (.).",
+    sheetLabel: "Hoja (sheet):",
+    step2: "2) Vista previa del documento original",
+    step3: "3) Selecciona campos a pseudoanonimizar",
+    step4: "4) Genera y descarga",
+    step5: "4) Vista previa del resultado y descarga",
+    privateTitle: "Hoja privada",
+    privateHint: "Contiene datos personales. No compartir con repositorios en línea o IA.",
+    publicTitle: "Hoja pública",
+    publicHint: "Puede usarse públicamente.",
+    download: "Descargar",
+    generate: "Generar archivos",
+    previewEmpty: "No hay filas para mostrar.",
+    previewCount: "Mostrando {count} de {total} filas.",
+    statusSheetEmpty: "Esta hoja no tiene datos.",
+    statusNoData: "No hay datos cargados.",
+    statusSelectColumn: "Selecciona al menos una columna para pseudoanonimizar.",
+    statusMissingColumns: "Columnas no encontradas: {cols}",
+    statusGenerated: "Archivos generados. Ya puedes descargarlos.",
+    statusUnsupported: "Formato no soportado. Sube CSV, XLSX, XLS, ODS o PDF.",
+    statusReadError: "Error leyendo archivo: {err}"
+  },
+  en: {
+    title: "Personal Data Pseudonymizer",
+    subtitle: "Processed locally in the browser. No data is sent to any server.",
+    validation: "Validated by the Educational Technologies and Responsible Digitalization area of the Department of Education and Vocational Training.",
+    languageLabel: "Language",
+    step1: "1) Upload the spreadsheet with all data",
+    uploadTitle: "Drag your file here",
+    uploadHint: "or click to select",
+    uploadFormats: "Formats: CSV, XLSX, XLS, ODS, PDF",
+    csvHint: "CSV: separator ',' or ';' and decimals with dot (.).",
+    sheetLabel: "Sheet:",
+    step2: "2) Preview of the original document",
+    step3: "3) Select fields to pseudonymize",
+    step4: "4) Generate and download",
+    step5: "4) Preview of the result and download",
+    privateTitle: "Private sheet",
+    privateHint: "Contains personal data. Do not share with online repositories or AI.",
+    publicTitle: "Public sheet",
+    publicHint: "Safe to use publicly.",
+    download: "Download",
+    generate: "Generate files",
+    previewEmpty: "No rows to show.",
+    previewCount: "Showing {count} of {total} rows.",
+    statusSheetEmpty: "This sheet has no data.",
+    statusNoData: "No data loaded.",
+    statusSelectColumn: "Select at least one column to pseudonymize.",
+    statusMissingColumns: "Columns not found: {cols}",
+    statusGenerated: "Files generated. You can download them now.",
+    statusUnsupported: "Unsupported format. Upload CSV, XLSX, XLS, ODS, or PDF.",
+    statusReadError: "Error reading file: {err}"
+  }
+};
+
+let currentLang = "ca";
+let lastStatus = null;
+
+function t(key, params = {}) {
+  const dict = translations[currentLang] || translations.ca;
+  let text = dict[key] || "";
+  Object.entries(params).forEach(([param, value]) => {
+    text = text.replace(new RegExp(`\\{${param}\\}`, "g"), value);
+  });
+  return text;
+}
+
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    const key = node.getAttribute("data-i18n");
+    node.textContent = t(key);
+  });
+}
+
+function updateCsvHint() {
+  msgInfo.textContent = inputExt === "csv" ? t("csvHint") : "";
+}
 
 if (typeof pdfjsLib !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -48,11 +169,24 @@ function setStatus(msg, isError = false) {
   statusDiv.style.color = isError ? "#ff6b6b" : "#a8b0bf";
 }
 
+function setStatusKey(key, params = {}, isError = false) {
+  const msg = t(key, params);
+  setStatus(msg, isError);
+  lastStatus = { key, params, isError };
+}
+
+function clearStatus() {
+  setStatus("");
+  lastStatus = null;
+}
+
 function resetUI() {
   workbook = null;
   activeSheetName = null;
   tableRows = [];
-  msgInfo.textContent = "";
+  lastPrivateRows = null;
+  lastPublicRows = null;
+  updateCsvHint();
   sheetSelect.innerHTML = "";
   columnsList.innerHTML = "";
   previewDiv.innerHTML = "";
@@ -61,7 +195,7 @@ function resetUI() {
   generateCard.classList.add("hidden");
   sheetRow.classList.add("hidden");
   downloadSlots.forEach((slot) => slot.classList.add("hidden"));
-  setStatus("");
+  clearStatus();
   resultPreviewCard.classList.add("hidden");
   previewPrivateDiv.innerHTML = "";
   previewPublicDiv.innerHTML = "";
@@ -69,7 +203,7 @@ function resetUI() {
 
 function renderPreview(rows, max = 20) {
   if (!rows.length) {
-    previewDiv.innerHTML = "<p class='muted'>Sense files per mostrar.</p>";
+    previewDiv.innerHTML = `<p class='muted'>${escapeHtml(t("previewEmpty"))}</p>`;
     return;
   }
   const cols = Object.keys(rows[0]);
@@ -84,13 +218,13 @@ function renderPreview(rows, max = 20) {
       <thead><tr>${head}</tr></thead>
       <tbody>${body}</tbody>
     </table>
-    <p class="muted">Mostrant ${Math.min(max, rows.length)} de ${rows.length} files.</p>
+    <p class="muted">${escapeHtml(t("previewCount", { count: Math.min(max, rows.length), total: rows.length }))}</p>
   `;
 }
 
 function renderPreviewInto(targetDiv, rows, max = 3) {
     if (!rows.length) {
-      targetDiv.innerHTML = "<p class='muted'>Sense files per mostrar.</p>";
+      targetDiv.innerHTML = `<p class='muted'>${escapeHtml(t("previewEmpty"))}</p>`;
       return;
     }
     const cols = Object.keys(rows[0]);
@@ -105,7 +239,7 @@ function renderPreviewInto(targetDiv, rows, max = 3) {
         <thead><tr>${head}</tr></thead>
         <tbody>${body}</tbody>
       </table>
-      <p class="muted">Mostrant ${Math.min(max, rows.length)} de ${rows.length} files.</p>
+      <p class="muted">${escapeHtml(t("previewCount", { count: Math.min(max, rows.length), total: rows.length }))}</p>
     `;
   }
   
@@ -327,7 +461,7 @@ function loadSheet(sheetName) {
     columnsCard.classList.add("hidden");
     previewCard.classList.add("hidden");
     generateCard.classList.add("hidden");
-    setStatus("Aquest full no té dades.", true);
+    setStatusKey("statusSheetEmpty", {}, true);
     return;
   }
 
@@ -338,7 +472,7 @@ function loadSheet(sheetName) {
   columnsCard.classList.remove("hidden");
   previewCard.classList.remove("hidden");
   generateCard.classList.remove("hidden");
-  setStatus("");
+  clearStatus();
 }
 
 function renderColumns(cols) {
@@ -391,18 +525,18 @@ function generate() {
   const idCol = "ID";
 
   if (!tableRows.length) {
-    setStatus("No hi ha dades carregades.", true);
+    setStatusKey("statusNoData", {}, true);
     return;
   }
   if (selected.length === 0) {
-    setStatus("Selecciona com a mínim una columna a anonimitzar.", true);
+    setStatusKey("statusSelectColumn", {}, true);
     return;
   }
 
   const originalCols = Object.keys(tableRows[0]);
   const missing = selected.filter(c => !originalCols.includes(c));
   if (missing.length) {
-    setStatus(`Columnes no trobades: ${missing.join(", ")}`, true);
+    setStatusKey("statusMissingColumns", { cols: missing.join(", ") }, true);
     return;
   }
 
@@ -427,6 +561,8 @@ function generate() {
     publicRows.push(pub);
   }
 
+  lastPrivateRows = privateRows;
+  lastPublicRows = publicRows;
 
   // Previsualización resultados (3 filas)
   renderPreviewInto(previewPrivateDiv, privateRows, 3);
@@ -452,7 +588,7 @@ function generate() {
 
   downloadsPrivate.classList.remove("hidden");
   downloadsPublic.classList.remove("hidden");
-  setStatus("Fitxers generats. Pots descarregar-los ara.");
+  setStatusKey("statusGenerated");
   generateCard.classList.add("hidden");
 }
 
@@ -469,7 +605,7 @@ async function handleFileSelection(file) {
   inputBaseName = file.name.replace(/\.[^/.]+$/, "");
 
   fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
-  msgInfo.textContent = inputExt === "csv" ? CSV_INFO_TEXT : "";
+  updateCsvHint();
 
   const ext = file.name.toLowerCase();
   const buf = await file.arrayBuffer();
@@ -484,7 +620,7 @@ async function handleFileSelection(file) {
     } else if (ext.endsWith(".xlsx") || ext.endsWith(".xls") || ext.endsWith(".ods")) {
       workbook = XLSX.read(buf, { type: "array" });
     } else {
-      setStatus("Format no suportat. Puja CSV, XLSX o ODS.", true);
+      setStatusKey("statusUnsupported", {}, true);
       return;
     }
 
@@ -499,7 +635,7 @@ async function handleFileSelection(file) {
       loadSheet(names[0]);
     }
   } catch (err) {
-    setStatus(`Error llegint fitxer: ${err}`, true);
+    setStatusKey("statusReadError", { err: String(err) }, true);
   }
 }
 
@@ -526,3 +662,31 @@ if (dropZone) {
 }
 
 generateBtn.addEventListener("click", generate);
+
+function refreshPreviewsForLanguage() {
+  if (tableRows.length) {
+    renderPreview(tableRows, 3);
+  }
+  if (lastPrivateRows && lastPublicRows) {
+    renderPreviewInto(previewPrivateDiv, lastPrivateRows, 3);
+    renderPreviewInto(previewPublicDiv, lastPublicRows, 3);
+  }
+}
+
+if (langSelect) {
+  currentLang = langSelect.value || "ca";
+  const onLangChange = () => {
+    currentLang = langSelect.value;
+    applyTranslations();
+    updateCsvHint();
+    refreshPreviewsForLanguage();
+    if (lastStatus) {
+      setStatusKey(lastStatus.key, lastStatus.params, lastStatus.isError);
+    }
+  };
+  langSelect.addEventListener("change", onLangChange);
+  langSelect.addEventListener("input", onLangChange);
+}
+
+applyTranslations();
+updateCsvHint();

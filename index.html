@@ -13,29 +13,31 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
-  <main class="container py-4">
-    <header class="app-header mb-4">
+  <header class="app-header">
+    <div class="container app-header-inner">
       <div class="app-title">
         <span class="app-icon" aria-hidden="true"></span>
         <div>
-          <h1 class="h5 mb-1">Pseudoanonimitzador de dades personals</h1>
-          <p class="muted mb-0">Processament local al navegador web. No s’envien dades a cap servidor.</p>
+          <h1 class="h5 mb-1" data-i18n="title">Pseudoanonimitzador de dades personals</h1>
+          <p class="muted mb-0" data-i18n="subtitle">Processament local al navegador web. No s’envien dades a cap servidor.</p>
         </div>
       </div>
       <div class="app-lang">
-        <label class="me-2 fw-semibold" for="langSelect">Idioma</label>
+        <label class="me-2 fw-semibold" for="langSelect" data-i18n="languageLabel">Idioma</label>
         <select id="langSelect" class="form-select form-select-sm">
           <option value="ca" selected>Català</option>
-          <option value="es">Castellà</option>
+          <option value="es">Castellano</option>
           <option value="en">English</option>
         </select>
       </div>
-    </header>
-    <p class="muted">Validat per l'Àrea de Tecnologies educatives i Digitalització responsable del Departament d'Educació i Formació professional.</p>
+    </div>
+  </header>
+  <main class="container py-4">
+    <p class="muted" data-i18n="validation">Validat per l'Àrea de Tecnologies educatives i Digitalització responsable del Departament d'Educació i Formació professional.</p>
 
     <section class="card shadow-sm mb-3">
       <div class="card-body">
-      <h2>1) Carrega full de càlcul amb totes les dades</h2>
+      <h2 data-i18n="step1">1) Carrega full de càlcul amb totes les dades</h2>
       <div id="dropZone" class="upload-zone">
         <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.ods,.pdf" />
         <div class="upload-inner">
@@ -43,16 +45,16 @@
             <path d="M12 16V4m0 0l-4 4m4-4l4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M4 16v4h16v-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <p class="upload-title mb-1">Arrossega el teu arxiu aquí</p>
-          <p class="muted mb-1">o fes clic per seleccionar</p>
-          <p class="muted mb-0">Formats: CSV, XLSX, XLS, ODS, PDF</p>
-          <p id="msg_info" class="muted mb-0"></p>
+          <p class="upload-title mb-1" data-i18n="uploadTitle">Arrossega el teu arxiu aquí</p>
+          <p class="muted mb-1" data-i18n="uploadHint">o fes clic per seleccionar</p>
+          <p class="muted mb-0" data-i18n="uploadFormats">Formats: CSV, XLSX, XLS, ODS, PDF</p>
+          <p id="msg_info" class="muted mb-0" data-i18n="csvHint"></p>
         </div>
       </div>
       <div id="fileInfo" class="muted"></div>
 
       <div id="sheetRow" class="row g-2 align-items-center hidden">
-        <label for="sheetSelect" class="col-sm-3 col-form-label">Full (sheet):</label>
+        <label for="sheetSelect" class="col-sm-3 col-form-label" data-i18n="sheetLabel">Full (sheet):</label>
         <div class="col-sm-9">
           <select id="sheetSelect" class="form-select"></select>
         </div>
@@ -62,37 +64,37 @@
 
     <section class="card shadow-sm mb-3 hidden" id="previewCard">
       <div class="card-body">
-      <h2>2) Previsualizació del document original</h2>
+      <h2 data-i18n="step2">2) Previsualizació del document original</h2>
       <div id="preview"></div>
       </div>
     </section>
     
     <section class="card shadow-sm mb-3 hidden" id="columnsCard">
       <div class="card-body">
-        <h2>3) Selecciona camps a pseudoanonimitzar</h2>
+        <h2 data-i18n="step3">3) Selecciona camps a pseudoanonimitzar</h2>
         <div id="columnsList" class="row g-2 columns"></div>
       </div>
     </section>
 
     <section class="card shadow-sm mb-3 hidden" id="resultPreviewCard">
       <div class="card-body">
-      <h2>4) Previsualizació del resultat i descàrrega</h2>
+      <h2 data-i18n="step5">4) Previsualizació del resultat i descàrrega</h2>
     
       <div class="row g-3">
         <div class="col-lg-6">
-          <h3>Full privat</h3>
-          <p class="muted">Conté dades personals. No compartir amb repositoris en línia o IA.</p>
+          <h3 data-i18n="privateTitle">Full privat</h3>
+          <p class="muted" data-i18n="privateHint">Conté dades personals. No compartir amb repositoris en línia o IA.</p>
           <div id="previewPrivate"></div>
           <div class="download-slot hidden" id="downloadsPrivate">
-            <a id="dlPrivate" class="btn btn-primary">Descarrega</a>
+            <a id="dlPrivate" class="btn btn-primary" data-i18n="download">Descarrega</a>
           </div>
         </div>
         <div class="col-lg-6">
-          <h3>Full públic</h3>
-          <p class="muted">Podeu fer-lo servir públicament.</p>
+          <h3 data-i18n="publicTitle">Full públic</h3>
+          <p class="muted" data-i18n="publicHint">Podeu fer-lo servir públicament.</p>
           <div id="previewPublic"></div>
           <div class="download-slot hidden" id="downloadsPublic">
-            <a id="dlPublic" class="btn btn-primary">Descarrega</a>
+            <a id="dlPublic" class="btn btn-primary" data-i18n="download">Descarrega</a>
           </div>
         </div>
       </div>
@@ -102,8 +104,8 @@
 
     <section class="card shadow-sm mb-3 hidden" id="generateCard">
       <div class="card-body">
-      <h2>4) Genera i descarrega</h2>
-      <button id="generateBtn" class="btn btn-primary">Generar fitxers</button>
+      <h2 data-i18n="step4">4) Genera i descarrega</h2>
+      <button id="generateBtn" class="btn btn-primary" data-i18n="generate">Generar fitxers</button>
     
       <div id="status" class="status mt-2"></div>
       </div>

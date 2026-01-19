@@ -3,13 +3,16 @@
 }
 
 body {
-  background: #f8f9fb;
+  background: #ffffff;
 }
 
 .app-header {
-  background: #f0eeee;
-  border-bottom: 1px solid #d9d9d9;
-  border-radius: 10px;
+  background: #f2f2f2;
+  border-bottom: 1px solid #e0e0e0;
+  width: 100%;
+}
+
+.app-header-inner {
   padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
@@ -27,26 +30,18 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background: #2f7d32;
-  position: relative;
-}
-
-.app-icon::after {
-  content: "";
-  position: absolute;
-  inset: 7px;
-  border-radius: 3px;
-  background: #ffffff;
+  background: url("./images/icon-private-data-icons8.png") center/contain no-repeat;
 }
 
 .app-lang {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-left: auto;
 }
 
 @media (max-width: 768px) {
-  .app-header {
+  .app-header-inner {
     flex-direction: column;
     align-items: flex-start;
   }
