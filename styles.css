@@ -14,6 +14,14 @@ body {
   margin-top: 0.75rem;
 }
 
+.columns .form-check {
+  padding-left: 0;
+}
+
+.columns .form-check-input {
+  margin-left: 0;
+}
+
 .download-slot {
   margin-top: 0.75rem;
 }
