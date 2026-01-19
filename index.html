@@ -4,67 +4,86 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Anonimitzador de dades</title>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+  />
   <link rel="stylesheet" href="./styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
-  <main class="container">
-    <h1>Pseudoanonimitzador de dades personals</h1>
+  <main class="container py-4">
+    <header class="mb-4">
+      <h1 class="display-6 fw-semibold">Pseudoanonimitzador de dades personals</h1>
     <p class="muted">Processament local al navegador web. No s’envien dades a cap servidor.</p>
     <p class="muted">Validat per l'Àrea de Tecnologies educatives i Digitalització responsable.</p>
 
-    <section class="card">
+    </header>
+
+    <section class="card shadow-sm mb-3">
+      <div class="card-body">
       <h2>1) Carrega full de càlcul amb totes les dades</h2>
       <div id="msg_info" class="muted">Formats admesos: .csv, .xlsx, .xls, .ods, .pdf</div>
-      <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.ods,.pdf" />
+      <input id="fileInput" class="form-control" type="file" accept=".csv,.xlsx,.xls,.ods,.pdf" />
       <div id="fileInfo" class="muted"></div>
 
-      <div id="sheetRow" class="row hidden">
-        <label for="sheetSelect">Full (sheet):</label>
-        <select id="sheetSelect"></select>
+      <div id="sheetRow" class="row g-2 align-items-center hidden">
+        <label for="sheetSelect" class="col-sm-3 col-form-label">Full (sheet):</label>
+        <div class="col-sm-9">
+          <select id="sheetSelect" class="form-select"></select>
+        </div>
+      </div>
       </div>
     </section>
 
-    <section class="card hidden" id="previewCard">
+    <section class="card shadow-sm mb-3 hidden" id="previewCard">
+      <div class="card-body">
       <h2>2) Previsualizació del document original</h2>
       <div id="preview"></div>
+      </div>
     </section>
     
-    <section class="card hidden" id="columnsCard">
-      <h2>3) Selecciona camps a pseudoanonimitzar</h2>
-      <div id="columnsList" class="columns"></div>
+    <section class="card shadow-sm mb-3 hidden" id="columnsCard">
+      <div class="card-body">
+        <h2>3) Selecciona camps a pseudoanonimitzar</h2>
+        <div id="columnsList" class="row g-2 columns"></div>
+      </div>
     </section>
 
-    <section class="card hidden" id="resultPreviewCard">
+    <section class="card shadow-sm mb-3 hidden" id="resultPreviewCard">
+      <div class="card-body">
       <h2>5) Previsualizació del resultat</h2>
     
-      <div class="two-col">
-        <div>
+      <div class="row g-3">
+        <div class="col-lg-6">
           <h3>Full privat</h3>
           <p class="muted">Conté dades personals. No compartir amb repositoris en línia o IA.</p>
           <div id="previewPrivate"></div>
           <div class="download-slot hidden" id="downloadsPrivate">
-            <a id="dlPrivate" class="btn">Descarrega</a>
+            <a id="dlPrivate" class="btn btn-primary">Descarrega</a>
           </div>
         </div>
-        <div>
+        <div class="col-lg-6">
           <h3>Full públic</h3>
           <p class="muted">Podeu fer-lo servir públicament.</p>
           <div id="previewPublic"></div>
           <div class="download-slot hidden" id="downloadsPublic">
-            <a id="dlPublic" class="btn">Descarrega</a>
+            <a id="dlPublic" class="btn btn-primary">Descarrega</a>
           </div>
         </div>
+      </div>
       </div>
     </section>
     
 
-    <section class="card hidden" id="generateCard">
+    <section class="card shadow-sm mb-3 hidden" id="generateCard">
+      <div class="card-body">
       <h2>4) Genera i descarrega</h2>
-      <button id="generateBtn">Generar fitxers</button>
+      <button id="generateBtn" class="btn btn-primary">Generar fitxers</button>
     
-      <div id="status" class="status"></div>
+      <div id="status" class="status mt-2"></div>
+      </div>
     </section>
     
   </main>

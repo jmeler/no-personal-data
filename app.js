@@ -80,7 +80,7 @@ function renderPreview(rows, max = 20) {
   }).join("");
 
   previewDiv.innerHTML = `
-    <table>
+    <table class="table table-sm table-bordered">
       <thead><tr>${head}</tr></thead>
       <tbody>${body}</tbody>
     </table>
@@ -101,7 +101,7 @@ function renderPreviewInto(targetDiv, rows, max = 3) {
     }).join("");
   
     targetDiv.innerHTML = `
-      <table>
+      <table class="table table-sm table-bordered">
         <thead><tr>${head}</tr></thead>
         <tbody>${body}</tbody>
       </table>
@@ -353,14 +353,19 @@ function renderColumns(cols) {
   ].map((c) => c.toLowerCase()));
   columnsList.innerHTML = "";
   cols.forEach((c) => {
-    const id = `col_${c}`;
     const isDefault = defaultSensitive.has(String(c).trim().toLowerCase());
+    const col = document.createElement("div");
     const wrapper = document.createElement("label");
+
+    col.className = "col-sm-6 col-lg-4";
+    wrapper.className = "form-check border rounded p-2 d-flex gap-2 align-items-start h-100";
     wrapper.innerHTML = `
-      <input type="checkbox" value="${escapeHtml(c)}" ${isDefault ? "checked" : ""} />
-      <span>${escapeHtml(c)}</span>
+      <input class="form-check-input mt-1" type="checkbox" value="${escapeHtml(c)}" ${isDefault ? "checked" : ""} />
+      <span class="form-check-label">${escapeHtml(c)}</span>
     `;
-    columnsList.appendChild(wrapper);
+
+    col.appendChild(wrapper);
+    columnsList.appendChild(col);
   });
 }
 
