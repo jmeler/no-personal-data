@@ -138,6 +138,17 @@ const translations = {
 
 let currentLang = "ca";
 let lastStatus = null;
+const LANG_COOKIE = "npd_lang";
+
+function setCookie(name, value, days) {
+  const maxAge = days ? `; max-age=${days * 24 * 60 * 60}` : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}${maxAge}; path=/; samesite=lax`;
+}
+
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
 function t(key, params = {}) {
   const dict = translations[currentLang] || translations.ca;
@@ -674,9 +685,16 @@ function refreshPreviewsForLanguage() {
 }
 
 if (langSelect) {
-  currentLang = langSelect.value || "ca";
+  const savedLang = getCookie(LANG_COOKIE);
+  if (savedLang && translations[savedLang]) {
+    currentLang = savedLang;
+    langSelect.value = savedLang;
+  } else {
+    currentLang = langSelect.value || "ca";
+  }
   const onLangChange = () => {
     currentLang = langSelect.value;
+    setCookie(LANG_COOKIE, currentLang, 365);
     applyTranslations();
     updateCsvHint();
     refreshPreviewsForLanguage();
