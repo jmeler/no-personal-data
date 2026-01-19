@@ -3,6 +3,7 @@
 const fileInput = document.getElementById("fileInput");
 const fileInfo = document.getElementById("fileInfo");
 const msgInfo = document.getElementById("msg_info");
+const dropZone = document.getElementById("dropZone");
 
 const sheetRow = document.getElementById("sheetRow");
 const sheetSelect = document.getElementById("sheetSelect");
@@ -35,7 +36,6 @@ let workbook = null;
 let activeSheetName = null;
 let tableRows = []; // array of objects [{col: val, ...}, ...]
 
-const DEFAULT_INFO_TEXT = "Formats admesos: .csv, .xlsx, .xls, .ods, .pdf";
 const CSV_INFO_TEXT = "CSV: separador ',' o ';' i decimals amb punt (.).";
 
 if (typeof pdfjsLib !== "undefined") {
@@ -52,7 +52,7 @@ function resetUI() {
   workbook = null;
   activeSheetName = null;
   tableRows = [];
-  msgInfo.textContent = DEFAULT_INFO_TEXT;
+  msgInfo.textContent = "";
   sheetSelect.innerHTML = "";
   columnsList.innerHTML = "";
   previewDiv.innerHTML = "";
@@ -456,24 +456,20 @@ function generate() {
   generateCard.classList.add("hidden");
 }
 
-fileInput.addEventListener("change", async (e) => {
+async function handleFileSelection(file) {
   resetUI();
-
-  const file = e.target.files?.[0];
   if (!file) return;
 
-  // Base name y extensión para nombrar outputs
   const lower = file.name.toLowerCase();
   if (lower.endsWith(".csv")) inputExt = "csv";
   else if (lower.endsWith(".pdf")) inputExt = "pdf";
   else if (lower.endsWith(".ods")) inputExt = "ods";
   else inputExt = "xlsx";
 
-  // Base name sin extensión (manejo simple)
   inputBaseName = file.name.replace(/\.[^/.]+$/, "");
 
   fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
-  msgInfo.textContent = inputExt === "csv" ? CSV_INFO_TEXT : DEFAULT_INFO_TEXT;
+  msgInfo.textContent = inputExt === "csv" ? CSV_INFO_TEXT : "";
 
   const ext = file.name.toLowerCase();
   const buf = await file.arrayBuffer();
@@ -490,7 +486,7 @@ fileInput.addEventListener("change", async (e) => {
     } else {
       setStatus("Format no suportat. Puja CSV, XLSX o ODS.", true);
       return;
-    }    
+    }
 
     const names = workbook.SheetNames;
     if (names.length > 1) {
@@ -505,6 +501,28 @@ fileInput.addEventListener("change", async (e) => {
   } catch (err) {
     setStatus(`Error llegint fitxer: ${err}`, true);
   }
+}
+
+fileInput.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  await handleFileSelection(file);
 });
+
+if (dropZone) {
+  dropZone.addEventListener("click", () => fileInput.click());
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.classList.add("dragover");
+  });
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("dragover");
+  });
+  dropZone.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    const file = e.dataTransfer?.files?.[0];
+    await handleFileSelection(file);
+  });
+}
 
 generateBtn.addEventListener("click", generate);

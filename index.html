@@ -24,8 +24,19 @@
     <section class="card shadow-sm mb-3">
       <div class="card-body">
       <h2>1) Carrega full de càlcul amb totes les dades</h2>
-      <div id="msg_info" class="muted">Formats admesos: .csv, .xlsx, .xls, .ods, .pdf</div>
-      <input id="fileInput" class="form-control" type="file" accept=".csv,.xlsx,.xls,.ods,.pdf" />
+      <div id="dropZone" class="upload-zone">
+        <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.ods,.pdf" />
+        <div class="upload-inner">
+          <svg class="upload-icon" viewBox="0 0 24 24" role="img" aria-hidden="true">
+            <path d="M12 16V4m0 0l-4 4m4-4l4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 16v4h16v-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p class="upload-title mb-1">Arrossega el teu arxiu aquí</p>
+          <p class="muted mb-1">o fes clic per seleccionar</p>
+          <p class="muted mb-0">Formats: CSV, XLSX, XLS, ODS, PDF</p>
+          <p id="msg_info" class="muted mb-0"></p>
+        </div>
+      </div>
       <div id="fileInfo" class="muted"></div>
 
       <div id="sheetRow" class="row g-2 align-items-center hidden">
@@ -53,7 +64,7 @@
 
     <section class="card shadow-sm mb-3 hidden" id="resultPreviewCard">
       <div class="card-body">
-      <h2>5) Previsualizació del resultat</h2>
+      <h2>4) Previsualizació del resultat</h2>
     
       <div class="row g-3">
         <div class="col-lg-6">

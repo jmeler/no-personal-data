@@ -30,6 +30,45 @@ body {
   min-height: 1.25rem;
 }
 
+.upload-zone {
+  border: 2px dashed #d3d9e3;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  color: #5f6b7a;
+  background: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.upload-zone input {
+  display: none;
+}
+
+.upload-zone.dragover {
+  border-color: #0d6efd;
+  background: #f0f6ff;
+  color: #0d6efd;
+}
+
+.upload-inner {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.upload-icon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.25rem;
+}
+
+.upload-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
 .hidden {
   display: none;
 }
