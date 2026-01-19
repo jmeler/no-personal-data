@@ -6,6 +6,52 @@ body {
   background: #f8f9fb;
 }
 
+.app-header {
+  background: #f0eeee;
+  border-bottom: 1px solid #d9d9d9;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #2f7d32;
+  position: relative;
+}
+
+.app-icon::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 3px;
+  background: #ffffff;
+}
+
+.app-lang {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 .muted {
   color: #6c757d;
 }

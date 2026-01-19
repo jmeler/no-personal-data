@@ -14,12 +14,24 @@
 </head>
 <body>
   <main class="container py-4">
-    <header class="mb-4">
-      <h1 class="display-6 fw-semibold">Pseudoanonimitzador de dades personals</h1>
-    <p class="muted">Processament local al navegador web. No s’envien dades a cap servidor.</p>
-    <p class="muted">Validat per l'Àrea de Tecnologies educatives i Digitalització responsable.</p>
-
+    <header class="app-header mb-4">
+      <div class="app-title">
+        <span class="app-icon" aria-hidden="true"></span>
+        <div>
+          <h1 class="h5 mb-1">Pseudoanonimitzador de dades personals</h1>
+          <p class="muted mb-0">Processament local al navegador web. No s’envien dades a cap servidor.</p>
+        </div>
+      </div>
+      <div class="app-lang">
+        <label class="me-2 fw-semibold" for="langSelect">Idioma</label>
+        <select id="langSelect" class="form-select form-select-sm">
+          <option value="ca" selected>Català</option>
+          <option value="es">Castellà</option>
+          <option value="en">English</option>
+        </select>
+      </div>
     </header>
+    <p class="muted">Validat per l'Àrea de Tecnologies educatives i Digitalització responsable del Departament d'Educació i Formació professional.</p>
 
     <section class="card shadow-sm mb-3">
       <div class="card-body">
@@ -64,7 +76,7 @@
 
     <section class="card shadow-sm mb-3 hidden" id="resultPreviewCard">
       <div class="card-body">
-      <h2>4) Previsualizació del resultat</h2>
+      <h2>4) Previsualizació del resultat i descàrrega</h2>
     
       <div class="row g-3">
         <div class="col-lg-6">
