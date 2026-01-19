@@ -33,11 +33,14 @@
     </div>
   </header>
   <main class="container py-4">
-    <p class="muted" data-i18n="validation">Validat per l'Àrea de Tecnologies educatives i Digitalització responsable del Departament d'Educació i Formació professional.</p>
+    <p class="muted" data-i18n="validation">Validat per l'Àrea de Tecnologies educatives i Digitalització responsable del Departament d'Educació i Formació professional de Catalunya.</p>
 
     <section class="card shadow-sm mb-3">
       <div class="card-body">
-      <h2 data-i18n="step1">1) Carrega full de càlcul amb totes les dades</h2>
+      <h2 class="step-title">
+        <img class="step-icon" src="./images/1.png" alt="1" />
+        <span data-i18n="step1">Carrega full de càlcul amb totes les dades</span>
+      </h2>
       <div id="dropZone" class="upload-zone">
         <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.ods,.pdf" />
         <div class="upload-inner">
@@ -64,21 +67,30 @@
 
     <section class="card shadow-sm mb-3 hidden" id="previewCard">
       <div class="card-body">
-      <h2 data-i18n="step2">2) Previsualizació del document original</h2>
+      <h2 class="step-title">
+        <img class="step-icon" src="./images/2.png" alt="2" />
+        <span data-i18n="step2">Previsualizació del document original</span>
+      </h2>
       <div id="preview"></div>
       </div>
     </section>
     
     <section class="card shadow-sm mb-3 hidden" id="columnsCard">
       <div class="card-body">
-        <h2 data-i18n="step3">3) Selecciona camps a pseudoanonimitzar</h2>
+        <h2 class="step-title">
+          <img class="step-icon" src="./images/3.png" alt="3" />
+          <span data-i18n="step3">Selecciona camps a pseudoanonimitzar</span>
+        </h2>
         <div id="columnsList" class="row g-2 columns"></div>
       </div>
     </section>
 
     <section class="card shadow-sm mb-3 hidden" id="resultPreviewCard">
       <div class="card-body">
-      <h2 data-i18n="step5">4) Previsualizació del resultat i descàrrega</h2>
+      <h2 class="step-title">
+        <img class="step-icon" src="./images/4.png" alt="4" />
+        <span data-i18n="step5">Previsualizació del resultat i descàrrega</span>
+      </h2>
     
       <div class="row g-3">
         <div class="col-lg-6">
@@ -104,7 +116,10 @@
 
     <section class="card shadow-sm mb-3 hidden" id="generateCard">
       <div class="card-body">
-      <h2 data-i18n="step4">4) Genera i descarrega</h2>
+      <h2 class="step-title">
+        <img class="step-icon" src="./images/4.png" alt="4" />
+        <span data-i18n="step4">Genera i descarrega</span>
+      </h2>
       <button id="generateBtn" class="btn btn-primary" data-i18n="generate">Generar fitxers</button>
     
       <div id="status" class="status mt-2"></div>
