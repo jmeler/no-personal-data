@@ -486,16 +486,24 @@ function loadSheet(sheetName) {
   clearStatus();
 }
 
-function renderColumns(cols) {
-  const defaultSensitive = new Set([
-    "DNI",
-    "NIF",
-    "Nom",
-    "Cognom",
-    "Correu",
-    "Correu electrònic",
-    "Adreça"
-  ].map((c) => c.toLowerCase()));
+  function renderColumns(cols) {
+    const defaultSensitive = new Set([
+      "DNI",
+      "NIF",
+      "Nom",
+      "Cognom",
+      "Correu",
+      "Correu electrònic",
+      "Adreça",
+      "email",
+      "user",
+      "username",
+      "idalu",
+      "name",
+      "lastname",
+      "usuari",
+      "persona"
+    ].map((c) => c.toLowerCase()));
   columnsList.innerHTML = "";
   cols.forEach((c) => {
     const isDefault = defaultSensitive.has(String(c).trim().toLowerCase());

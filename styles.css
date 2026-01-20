@@ -68,6 +68,10 @@ body {
   object-fit: contain;
 }
 
+.step-desc {
+  margin-left: calc(38px + 0.6rem);
+}
+
 @media (max-width: 768px) {
   .app-header-inner {
     flex-direction: column;
