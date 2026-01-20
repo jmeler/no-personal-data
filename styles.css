@@ -4,6 +4,9 @@
 
 body {
   background: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-header {
@@ -141,4 +144,8 @@ body {
 
 table {
   font-size: 0.875rem;
+}
+
+main {
+  flex: 1 0 auto;
 }
