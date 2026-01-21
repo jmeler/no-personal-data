@@ -83,6 +83,16 @@ body {
   color: #6c757d;
 }
 
+.app-footer .muted a {
+  color: #0d6efd;
+  text-decoration: underline;
+}
+
+.app-footer .muted a:hover,
+.app-footer .muted a:focus {
+  color: #0b5ed7;
+}
+
 .columns {
   margin-top: 0.75rem;
 }
