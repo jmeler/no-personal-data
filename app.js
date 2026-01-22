@@ -378,10 +378,22 @@ function findHeaderLine(lines) {
   const isHeaderCandidate = (cells) =>
     cells.length >= 2 && cells.some((c) => /[A-Za-zÀ-ÿ]/.test(c.text));
 
+  const scoreCandidate = (cells) => {
+    const nonNumeric = cells.filter((c) => /[A-Za-zÀ-ÿ]/.test(c.text) && !/\d/.test(c.text)).length;
+    const numeric = cells.filter((c) => /\d/.test(c.text) && !/[A-Za-zÀ-ÿ]/.test(c.text)).length;
+    return cells.length * 3 + nonNumeric * 2 - numeric;
+  };
+
+  let best = null;
   for (let i = 0; i < lines.length; i++) {
     const normalized = normalizeLineItems(lines[i]);
-    if (isHeaderCandidate(normalized.cells)) return { index: i, ...normalized };
+    if (!isHeaderCandidate(normalized.cells)) continue;
+    const score = scoreCandidate(normalized.cells);
+    if (!best || score > best.score) {
+      best = { index: i, score, ...normalized };
+    }
   }
+  if (best) return best;
 
   let bestIndex = -1;
   let bestCells = [];
@@ -397,17 +409,9 @@ function findHeaderLine(lines) {
   return bestCells.length >= 2 ? { index: bestIndex, cells: bestCells, fromSplit: bestFromSplit } : null;
 }
 
-function extractTableFromPdfLines(lines) {
-  if (!lines.length) return null;
-  const headerInfo = findHeaderLine(lines);
-  if (!headerInfo) return null;
-
-  const headers = headerInfo.cells.map((item) => item.text);
-  const useIndexColumns = headerInfo.fromSplit;
-  const headerX = headerInfo.cells.map((item) => item.x);
+function buildTableFromLines(lines, headers, headerX, useIndexColumns, startIndex) {
   const data = [];
-
-  for (let i = headerInfo.index + 1; i < lines.length; i++) {
+  for (let i = startIndex; i < lines.length; i++) {
     const line = lines[i];
     const row = Array.from({ length: headers.length }, () => "");
     const normalized = normalizeLineItems(line);
@@ -437,10 +441,10 @@ function extractTableFromPdfLines(lines) {
       }
     }
 
-    if (row.some((cell) => cell.trim().length)) data.push(row);
+    const nonEmpty = row.filter((cell) => cell.trim().length).length;
+    if (nonEmpty >= 2) data.push(row);
   }
-
-  return { headers, data };
+  return data;
 }
 
 async function pdfToWorkbook(buf) {
@@ -448,22 +452,47 @@ async function pdfToWorkbook(buf) {
     throw new Error("No s'ha pogut carregar el lector de PDF.");
   }
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const wb = XLSX.utils.book_new();
+  let headers = null;
+  let headerX = null;
+  let useIndexColumns = false;
+  let combinedData = [];
 
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
     const page = await pdf.getPage(pageNum);
     const content = await page.getTextContent();
     const lines = groupPdfTextLines(content.items);
-    const table = extractTableFromPdfLines(lines);
-    if (table) {
-      const aoa = [table.headers, ...table.data];
-      const ws = XLSX.utils.aoa_to_sheet(aoa);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "data");
-      return wb;
+    if (pageNum === 1) {
+      const headerInfo = findHeaderLine(lines);
+      if (!headerInfo) {
+        throw new Error("No s'ha detectat cap taula al PDF.");
+      }
+      headers = headerInfo.cells.map((item) => item.text);
+      headerX = headerInfo.cells.map((item) => item.x);
+      useIndexColumns = headerInfo.fromSplit;
+      combinedData = combinedData.concat(
+        buildTableFromLines(lines, headers, headerX, useIndexColumns, headerInfo.index + 1)
+      );
+    } else if (headers) {
+      const pageData = buildTableFromLines(lines, headers, headerX, useIndexColumns, 0);
+      const filtered = pageData.filter((row) => {
+        if (row.length !== headers.length) return true;
+        return !row.every((cell, idx) =>
+          String(cell).trim().toLowerCase() === String(headers[idx]).trim().toLowerCase()
+        );
+      });
+      combinedData = combinedData.concat(filtered);
     }
   }
 
-  throw new Error("No s'ha detectat cap taula al PDF.");
+  if (!headers) {
+    throw new Error("No s'ha detectat cap taula al PDF.");
+  }
+
+  const aoa = [headers, ...combinedData];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  XLSX.utils.book_append_sheet(wb, ws, "data");
+  return wb;
 }
 
 function loadSheet(sheetName) {
