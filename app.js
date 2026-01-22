@@ -18,6 +18,7 @@ const previewDiv = document.getElementById("preview");
 
 const generateCard = document.getElementById("generateCard");
 const generateBtn = document.getElementById("generateBtn");
+const outputFormatSelect = document.getElementById("outputFormat");
 
 const downloadSlots = document.querySelectorAll(".download-slot");
 const downloadsPrivate = document.getElementById("downloadsPrivate");
@@ -32,6 +33,9 @@ const previewPublicDiv = document.getElementById("previewPublic");
 
 let inputBaseName = "anonimitzat"; // se actualiza al cargar archivo
 let inputExt = "xlsx";             // por defecto
+let outputFormat = "xlsx";
+
+const OUTPUT_FORMATS = ["xlsx", "xls", "ods", "csv", "pdf"];
 
 let workbook = null;
 let activeSheetName = null;
@@ -46,6 +50,7 @@ const translations = {
     subtitle: "Processament local al navegador web. No s’envien dades a cap servidor.",
     validation: "Validat per l'<a target=\"_blank\" rel=\"noopener noreferrer\" referrerpolicy=\"no-referrer\" href=\"https://web.gencat.cat/content/webgencat/ca/generalitat/com-ens-organitzem/adreces-i-telefons/detall-adreces-i-telefons.html?objectID=16415\">Àrea de Tecnologies educatives i Digitalització responsable</a> del Departament d'Educació i Formació professional de Catalunya.",
     languageLabel: "Idioma",
+    outputFormatLabel: "Format de sortida",
     step1: "Carrega full de càlcul amb totes les dades",
     uploadTitle: "Arrossega el teu arxiu aquí",
     uploadHint: "o fes clic per seleccionar",
@@ -77,6 +82,7 @@ const translations = {
     subtitle: "Procesamiento local en el navegador. No se envían datos a ningún servidor.",
     validation: "Validado por el <a target=\"_blank\" rel=\"noopener noreferrer\" referrerpolicy=\"no-referrer\" href=\"https://web.gencat.cat/content/webgencat/ca/generalitat/com-ens-organitzem/adreces-i-telefons/detall-adreces-i-telefons.html?objectID=16415\">Área de Tecnologías educativas y Digitalización responsable</a> del Departamento de Educación y Formación profesional de Cataluña.",
     languageLabel: "Idioma",
+    outputFormatLabel: "Formato de salida",
     step1: "Carga la hoja con todos los datos",
     uploadTitle: "Arrastra tu archivo aquí",
     uploadHint: "o haz clic para seleccionar",
@@ -108,6 +114,7 @@ const translations = {
     subtitle: "Processed locally in the browser. No data is sent to any server.",
     validation: "Validated by the <a target=\"_blank\" rel=\"noopener noreferrer\" referrerpolicy=\"no-referrer\" href=\"https://web.gencat.cat/content/webgencat/ca/generalitat/com-ens-organitzem/adreces-i-telefons/detall-adreces-i-telefons.html?objectID=16415\">Educational Technologies and Responsible Digitalization area</a> of the Department of Education and Vocational Training of Catalonia.",
     languageLabel: "Language",
+    outputFormatLabel: "Output format",
     step1: "Upload the spreadsheet with all data",
     uploadTitle: "Drag your file here",
     uploadHint: "or click to select",
@@ -565,12 +572,64 @@ function toWorksheetFromObjects(rows) {
   return XLSX.utils.json_to_sheet(rows);
 }
 
-function workbookToBlobUrl(wb) {
-  const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-  const blob = new Blob([wbout], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  });
+function getOutputFormat(ext) {
+  return OUTPUT_FORMATS.includes(ext) ? ext : "xlsx";
+}
+
+function setOutputFormat(ext) {
+  outputFormat = getOutputFormat(ext);
+  if (outputFormatSelect) {
+    outputFormatSelect.value = outputFormat;
+  }
+}
+
+function workbookToBlobUrl(wb, format) {
+  const output = getOutputFormat(format);
+  if (output === "csv") {
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    const blob = new Blob([csv], { type: "text/csv" });
+    return URL.createObjectURL(blob);
+  }
+  if (output === "pdf") {
+    throw new Error("PDF export uses rows, not workbook.");
+  }
+
+  const mimeTypes = {
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    xls: "application/vnd.ms-excel",
+    ods: "application/vnd.oasis.opendocument.spreadsheet"
+  };
+  const wbout = XLSX.write(wb, { bookType: output, type: "array" });
+  const blob = new Blob([wbout], { type: mimeTypes[output] || "application/octet-stream" });
   return URL.createObjectURL(blob);
+}
+
+function rowsToPdfBlobUrl(rows, title) {
+  if (!window.jspdf || typeof window.jspdf.jsPDF !== "function") {
+    throw new Error("No s'ha pogut carregar el generador PDF.");
+  }
+  const doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+  doc.setFontSize(12);
+  doc.text(title, 40, 40);
+
+  if (!rows.length) {
+    doc.setFontSize(10);
+    doc.text("Sense dades", 40, 70);
+  } else if (typeof doc.autoTable === "function") {
+    const headers = Object.keys(rows[0]);
+    const data = rows.map((row) => headers.map((key) => row[key] ?? ""));
+    doc.autoTable({
+      head: [headers],
+      body: data,
+      startY: 60,
+      styles: { fontSize: 8, cellPadding: 3 }
+    });
+  } else {
+    throw new Error("No s'ha pogut carregar el tauler PDF.");
+  }
+
+  return URL.createObjectURL(doc.output("blob"));
 }
 
 function generate() {
@@ -630,14 +689,23 @@ function generate() {
   const wbPub = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wbPub, toWorksheetFromObjects(publicRows), "public");
 
+  const format = getOutputFormat(outputFormatSelect ? outputFormatSelect.value : outputFormat);
+
   // Assigna URLs de descàrrega
-  const urlPriv = workbookToBlobUrl(wbPriv);
-  const urlPub = workbookToBlobUrl(wbPub);
+  let urlPriv;
+  let urlPub;
+  if (format === "pdf") {
+    urlPriv = rowsToPdfBlobUrl(privateRows, `${inputBaseName}_private`);
+    urlPub = rowsToPdfBlobUrl(publicRows, `${inputBaseName}_public`);
+  } else {
+    urlPriv = workbookToBlobUrl(wbPriv, format);
+    urlPub = workbookToBlobUrl(wbPub, format);
+  }
 
   dlPrivate.href = urlPriv;
   dlPublic.href = urlPub;
-  dlPrivate.download = `${inputBaseName}_private.xlsx`;
-  dlPublic.download  = `${inputBaseName}_public.xlsx`;
+  dlPrivate.download = `${inputBaseName}_private.${format}`;
+  dlPublic.download  = `${inputBaseName}_public.${format}`;
 
   downloadsPrivate.classList.remove("hidden");
   downloadsPublic.classList.remove("hidden");
@@ -656,6 +724,7 @@ async function handleFileSelection(file) {
   else inputExt = "xlsx";
 
   inputBaseName = file.name.replace(/\.[^/.]+$/, "");
+  setOutputFormat(inputExt);
 
   fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
   updateCsvHint();
@@ -715,6 +784,13 @@ if (dropZone) {
 }
 
 generateBtn.addEventListener("click", generate);
+
+if (outputFormatSelect) {
+  outputFormatSelect.addEventListener("change", () => {
+    outputFormat = getOutputFormat(outputFormatSelect.value);
+    outputFormatSelect.value = outputFormat;
+  });
+}
 
 function refreshPreviewsForLanguage() {
   if (tableRows.length) {

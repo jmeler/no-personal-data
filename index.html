@@ -120,6 +120,16 @@
         <img class="step-icon" src="./images/4.png" alt="4" />
         <span data-i18n="step4">Genera fulls i descarrega</span>
       </h2>
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <label for="outputFormat" class="fw-semibold" data-i18n="outputFormatLabel">Format de sortida</label>
+        <select id="outputFormat" class="form-select form-select-sm w-auto">
+          <option value="xlsx">XLSX</option>
+          <option value="xls">XLS</option>
+          <option value="ods">ODS</option>
+          <option value="csv">CSV</option>
+          <option value="pdf">PDF</option>
+        </select>
+      </div>
       <button id="generateBtn" class="btn btn-primary" data-i18n="generate">Generar fitxers</button>
     
       <div id="status" class="status mt-2"></div>
@@ -132,6 +142,8 @@
       <p class="muted mb-0" data-i18n="validation" data-i18n-html="true">Validat per l'<a target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" href="https://web.gencat.cat/content/webgencat/ca/generalitat/com-ens-organitzem/adreces-i-telefons/detall-adreces-i-telefons.html?objectID=16415">Àrea de Tecnologies educatives i Digitalització responsable</a> del Departament d'Educació i Formació professional de Catalunya.</p>
     </div>
   </footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
