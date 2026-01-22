@@ -44,7 +44,7 @@ const translations = {
   ca: {
     title: "Pseudoanonimitzador de dades personals",
     subtitle: "Processament local al navegador web. No s’envien dades a cap servidor.",
-    validation: "Validat per l'Àrea de Tecnologies educatives i Digitalització responsable del Departament d'Educació i Formació professional de Catalunya.",
+    validation: "Validat per l'<a target=\"_blank\" rel=\"noopener noreferrer\" referrerpolicy=\"no-referrer\" href=\"https://web.gencat.cat/content/webgencat/ca/generalitat/com-ens-organitzem/adreces-i-telefons/detall-adreces-i-telefons.html?objectID=16415\">Àrea de Tecnologies educatives i Digitalització responsable</a> del Departament d'Educació i Formació professional de Catalunya.",
     languageLabel: "Idioma",
     step1: "Carrega full de càlcul amb totes les dades",
     uploadTitle: "Arrossega el teu arxiu aquí",
@@ -75,7 +75,7 @@ const translations = {
   es: {
     title: "Pseudoanonimizador de datos personales",
     subtitle: "Procesamiento local en el navegador. No se envían datos a ningún servidor.",
-    validation: "Validado por el Área de Tecnologías educativas y Digitalización responsable del Departamento de Educación y Formación profesional de Cataluña.",
+    validation: "Validado por el <a target=\"_blank\" rel=\"noopener noreferrer\" referrerpolicy=\"no-referrer\" href=\"https://web.gencat.cat/content/webgencat/ca/generalitat/com-ens-organitzem/adreces-i-telefons/detall-adreces-i-telefons.html?objectID=16415\">Área de Tecnologías educativas y Digitalización responsable</a> del Departamento de Educación y Formación profesional de Cataluña.",
     languageLabel: "Idioma",
     step1: "Carga la hoja con todos los datos",
     uploadTitle: "Arrastra tu archivo aquí",
@@ -106,7 +106,7 @@ const translations = {
   en: {
     title: "Personal Data Pseudonymizer",
     subtitle: "Processed locally in the browser. No data is sent to any server.",
-    validation: "Validated by the Educational Technologies and Responsible Digitalization area of the Department of Education and Vocational Training of Catalonia.",
+    validation: "Validated by the <a target=\"_blank\" rel=\"noopener noreferrer\" referrerpolicy=\"no-referrer\" href=\"https://web.gencat.cat/content/webgencat/ca/generalitat/com-ens-organitzem/adreces-i-telefons/detall-adreces-i-telefons.html?objectID=16415\">Educational Technologies and Responsible Digitalization area</a> of the Department of Education and Vocational Training of Catalonia.",
     languageLabel: "Language",
     step1: "Upload the spreadsheet with all data",
     uploadTitle: "Drag your file here",
@@ -162,7 +162,12 @@ function t(key, params = {}) {
 function applyTranslations() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     const key = node.getAttribute("data-i18n");
-    node.textContent = t(key);
+    const value = t(key);
+    if (node.hasAttribute("data-i18n-html")) {
+      node.innerHTML = value;
+    } else {
+      node.textContent = value;
+    }
   });
 }
 
