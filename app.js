@@ -834,27 +834,36 @@ function refreshPreviewsForLanguage() {
   }
 }
 
+function setLanguage(lang, persist) {
+  const nextLang = translations[lang] ? lang : "ca";
+  currentLang = nextLang;
+  if (langSelect && langSelect.value !== nextLang) {
+    langSelect.value = nextLang;
+  }
+  if (persist) {
+    setCookie(LANG_COOKIE, nextLang, 365);
+  }
+  document.documentElement.setAttribute("lang", nextLang);
+  applyTranslations();
+  updateCsvHint();
+  refreshPreviewsForLanguage();
+  if (lastStatus) {
+    setStatusKey(lastStatus.key, lastStatus.params, lastStatus.isError);
+  }
+}
+
 if (langSelect) {
   const savedLang = getCookie(LANG_COOKIE);
   if (savedLang && translations[savedLang]) {
-    currentLang = savedLang;
-    langSelect.value = savedLang;
+    setLanguage(savedLang, false);
   } else {
-    currentLang = langSelect.value || "ca";
+    setLanguage(langSelect.value || "ca", false);
   }
-  const onLangChange = () => {
-    currentLang = langSelect.value;
-    setCookie(LANG_COOKIE, currentLang, 365);
-    applyTranslations();
-    updateCsvHint();
-    refreshPreviewsForLanguage();
-    if (lastStatus) {
-      setStatusKey(lastStatus.key, lastStatus.params, lastStatus.isError);
-    }
+  const onLangChange = (event) => {
+    setLanguage(event.target.value, true);
   };
   langSelect.addEventListener("change", onLangChange);
   langSelect.addEventListener("input", onLangChange);
+} else {
+  setLanguage("ca", false);
 }
-
-applyTranslations();
-updateCsvHint();
